@@ -14,21 +14,17 @@ source:
   sha256: {{ hash }}
 
 build:
-  skip: True  # [py<38]
-  skip: True  # [python_impl == 'pypy']
-  number: 0
+  number: 1
   script: {{ PYTHON }} -m pip install . --no-deps -vv
   entry_points:
     - capytaine = capytaine.ui.cli:main
 
 requirements:
   build:
-    - {{ compiler('fortran') }}  # [unix]
-    - {{ compiler('c') }}  # [unix]
-    - {{ stdlib("c") }}    # [unix]
-    - {{ compiler('m2w64_c') }}  # [win]
-    - {{ stdlib("m2w64_c") }}    # [win]
-    - {{ compiler('m2w64_fortran') }}  # [win]
+    # uses m2w64 toolchain on windows, see conda_build_config.yaml
+    - {{ stdlib("c") }}
+    - {{ compiler("c") }}
+    - {{ compiler("fortran") }}
     - llvm-openmp  # [osx]
   host:
     - python
@@ -37,8 +33,7 @@ requirements:
     - meson-python
     - charset-normalizer
     - llvm-openmp  # [osx]
-    - {{ compiler('m2w64_c') }}  # [win]
-    - libpython  # [win]
+    - distutils-activate-mingw  # [win]
   run:
     - python
     - scipy
@@ -53,6 +48,8 @@ test:
   requires:
     - pytest
     - pip
+    # one test depends on implicit scalar conversion that was removed
+    - numpy <2.4
   source_files:
     - pytest/*.py
     - pytest/**/*
